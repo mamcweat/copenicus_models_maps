@@ -1,0 +1,200 @@
+    64	21:29	ncdump -h DWD-Ago26_month.nc
+    65	21:32	ll
+    66	21:32	h
+    67	21:33	python3 plot_seasonal_forecast.py --input DWD-Ago26_month.nc --output saida_mapas --year 2026 --month 8
+    68	21:33	h
+    69	21:33	ncdump -h DWD-Ago26_month.nc
+    70	21:34	python3 get_month_DWD.py
+    71	21:35	ll
+    72	21:35	ncdump -h 315d9dcb9ad07fb2d17ae5d5dca238c6.nc
+    73	21:38	ll
+    74	21:38	python3 get_month_DWD.py
+    75	21:39	ll
+    76	21:39	ncdump -h 89207cd128801c18a05047578dc90579.nc
+    77	21:42	python3 get_month_DWD.py
+    78	21:43	ll
+    79	21:43	ncdump -h 9baf3ba3f1d7c48a14a3f03ad8975208.nc
+    80	7:30	python3 get_month_DWD.py
+    81	7:32	ll
+    82	7:32	unzip 3cd3d1de9f92ae208d23d3b219d1ee60.zip
+    83	7:33	ls -ltrah
+    84	7:33	ncdump -h data_0.nc
+    85	8:06	ncdump -h data_1.nc
+    86	8:25	ll
+    87	8:25	mv data_0.nc BOM_0.nc
+    88	8:25	mv data_1.nc BOM_1.nc
+    89	8:26	python gera_mapas_previsao.py --f_previsao BOM_0.nc --f_hindcast data_1.nc BOM_1.nc --modelo BOM --mes 08 --ano 2026
+    90	8:27	python gera_mapas_previsao.py --f_previsao BOM_0.nc --f_hindcast BOM_1.nc --modelo BOM --mes 08 --ano 2026
+    91	8:28	python gera_mapas_previsao.py --f_previsao BOM_0.nc --f_hindcast BOM_1.nc --modelo BOM --mes 08 --ano 2026
+    92	8:28	ll
+    93	8:29	feh mapa_BOM_TMIN_absoluto_202608.png
+    94	8:35	\rm mapa_BOM*.png
+    95	8:35	python gera_mapas_previsao.py --f_previsao BOM_0.nc --f_hindcast BOM_1.nc --modelo BOM --mes 08 --ano 2026
+    96	8:43	ll
+    97	8:44	cp get_month_DWD.py get_month_BOM.py
+    98	8:45	ll
+    99	8:45	get_month_DWD.py
+   100	8:45	python3 get_month_DWD.py
+   101	8:48	python3 get_month_DWD.py
+   102	8:50	ll
+   103	8:50	unzip b2db267f0ba3166d1ccb44a97d514e7b.zip
+   104	8:50	h
+   105	8:50	ncdump -h data_0.nc
+   106	8:51	h
+   107	8:51	python gera_mapas_previsao.py --f_previsao data_0.nc --f_hindcast data_1.nc --modelo DWD --mes 08 --ano 2026
+   108	18:45	h
+   109	18:46	ll
+   110	18:46	h
+   111	18:46	python3 get_month_CMCC.py
+   112	18:47	ll
+   113	18:47	unzip f290b98af770bb2cc45eaebbe0eb6aea.zip
+   114	18:48	python gera_mapas_previsao.py --f_previsao data_0.nc --f_hindcast data_1.nc --modelo CMCC --mes 08 --ano 2026
+   115	18:48	h
+   116	18:48	ncdump -h data_0.nc
+   117	18:57	ll
+   118	18:57	mv data_1.nc CMCC_1.nc
+   119	18:57	mv data_0.nc CMCC__0.nc
+   120	18:57	unzip b2db267f0ba3166d1ccb44a97d514e7b.zip
+   121	18:58	ncdump -h data_0.nc
+   122	18:58	h
+   123	18:58	ll
+   124	18:58	mv data_0.nc DWD_0.nc
+   125	18:58	mv data_1.nc DWD_1.nc
+   126	18:58	ll
+   127	19:07	mkdir saida_modelos
+   128	19:07	mv DWD_1.nc DWD_0.nc saida_modelos
+   129	19:08	mv CMCC_1.nc saida_modelos
+   130	19:08	mv CMCC__0.nc saida_modelos/CMCC_0.nc
+   131	19:08	ll
+   132	19:08	mv BOM_1.nc BOM_0.nc saida_modelos
+   133	19:46	h
+   134	19:46	çç
+   135	19:46	ll
+   136	19:46	python get_month_ECMWF.py
+   137	19:47	ll
+   138	19:47	unzip 810942190d97a79d9529df6a69fd81f9.zip
+   139	19:47	h
+   140	19:47	ncdump -h data_0.nc
+   141	19:48	ncdump -h data_1.nc
+   142	19:48	h
+   143	19:48	python gera_mapas_previsao.py --f_previsao data_0.nc --f_hindcast data_1.nc --modelo ECMWF --mes 08 --ano 2026
+   144	21:24	ll
+   145	21:25	h
+   146	21:30	ll
+   147	21:30	ll saida_modelos
+   148	21:30	h
+   149	21:31	python gera_mapas_previsao.py --f_previsao saida_modelos/DWD_0.nc --f_hindcast saida_modelos/DWD_1.nc --modelo DWD --mes 08 --ano 2026
+   150	21:37	python automacao_copernicus.py --modelo ecmwf --month 08 --year 2026
+   151	21:44	python automacao_copernicus.py --modelo ecmwf --month 08 --year 2026
+   152	21:47	python automacao_copernicus.py --modelo ecmwf --month 08 --year 2026
+   153	21:54	ll *.zip
+   154	21:54	\rm *.zip
+   155	21:55	ll saida_modelos/
+   156	21:55	python automacao_copernicus.py --modelo meteo_france --month 08 --year 2026
+   157	21:56	h
+   158	21:57	ncdump /home/marcio/scripts/modelos/copernicus/saida_modelos/METEO_FRANCE_0.nc
+   159	21:57	ncdump -h /home/marcio/scripts/modelos/copernicus/saida_modelos/METEO_FRANCE_0.nc
+   160	7:50	h
+   161	7:50	ll hist*
+   162	7:50	h
+   163	7:50	h > history.txt
+    75	10:42	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_m10.png --latitude -23.55 --longitude -46.63 --year 2026 --month 8 --day 1
+    76	10:43	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_m10.png --latitude -23.55 --longitude -46.63 --year 2026 --month 8 --day 1
+    77	10:48	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_m10.png --latitude -23.55 --longitude -46.63 --year 2026 --month 8 --day 1
+    78	10:49	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_m10.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    79	11:01	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_m10.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1 --member 10
+    80	11:02	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    81	11:02	ll
+    82	11:02	feh forecast_sp_mean.png
+    83	11:18	feh forecast_sp_mean.png
+    84	14:03	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    85	14:04	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    86	14:11	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    87	16:34	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1 --member 0
+    88	16:57	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    89	16:57	feh forecast_sp_mean.png
+    90	16:59	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1 --member 0 10 P5 P90
+    91	16:59	feh forecast_sp_mean.png
+    92	16:59	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1 --member 0 P5 P90
+    93	16:59	feh forecast_sp_mean.png
+    94	17:07	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    95	17:19	h
+    96	17:19	ncdump -h exemplo_DWD.nc
+    97	17:50	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    98	17:51	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+    99	17:51	feh forecast_sp_mean.png
+   100	17:52	python3 plot_point_data.py --input exemplo_DWD.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+   101	17:52	feh forecast_sp_mean.png
+   102	17:53	feh forecast_sp_mean.png
+   103	18:43	ll
+   104	18:43	python3 plot_point_data.py --input DWD-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --init-year 2026 --init-month 8 --init-day 1
+   105	18:43	feh forecast_sp_mean.png
+   106	18:45	feh forecast_sp_mean.png
+   107	19:13	python3 plot_point_data.py --input DWD-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   108	19:13	feh forecast_sp_mean.png
+   109	15:00	feh forecast_sp_mean.png
+   110	15:03	cidade Bauru-SP
+   111	18:05	ll
+   112	18:05	python3 get_BOM_daily.py
+   113	18:18	ll
+   114	18:18	h
+   115	18:22	ll
+   116	18:22	ncdump -h 4f2f3f0e31d7f954432773692dc824bf.nc | more
+   117	18:23	ll
+   118	18:23	mv 4f2f3f0e31d7f954432773692dc824bf.nc BOM-Aug26.nc
+   119	18:24	h
+   120	18:25	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   121	18:25	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member mean P5 P90
+   122	18:26	ncdump -h BOM-Aug26.nc | more
+   123	18:26	ncdump -h DWD-Aug26.nc | more
+   124	18:39	cat history.txt
+   125	18:39	python automacao_copernicus.py --modelo ukmo --month 08 --year 2026
+   126	18:42	h
+   127	18:42	cd saida_mapas/
+   128	18:42	cp */*PR_anom_M1_202608.png Verificação/AGO26/
+   129	7:07	h
+   130	7:08	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member 1 2 3
+   131	7:08	cd ..
+   132	7:08	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member 1 2 3
+   133	7:08	python3 plot_point_data.py --member
+   134	7:08	python3 plot_point_data.py --help
+   135	7:11	ncview BOM-Aug26.nc
+   136	7:14	h
+   137	7:14	python3 get_BOM_daily.py
+   138	7:26	ll
+   139	7:26	ncview b2fc492daa35e9451804ee4c695d1c10.nc
+   140	7:26	ll
+   141	7:26	mv b2fc492daa35e9451804ee4c695d1c10.nc BOM-Aug26.nc
+   142	7:26	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   143	7:27	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member 1 2 3
+   144	7:53	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member 1 2 3
+   145	7:53	python3 plot_point_data.py --input BOM-Aug26.nc --output forecast_sp_mean.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member 1 2 3
+   146	7:55	h
+   147	7:55	python3 get_BOM_daily.py
+   148	7:57	ll
+   149	7:57	mv 13f7f6f0180cd2627a16409b2164b820.nc UKMO_Aug26.nc
+   150	7:57	python3 plot_point_data.py --input UKMO-Aug26.nc --output forecast_sp_ukmo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   151	7:57	ll
+   152	7:58	python3 plot_point_data.py --input UKMO_Aug26.nc --output forecast_sp_ukmo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   153	7:58	feh /home/marcio/scripts/modelos/copernicus/forecast_sp_ukmo.png
+   154	8:04	python3 plot_point_data.py --input UKMO_Aug26.nc --output forecast_sp_ukmo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member mean P5 P90
+   155	8:04	python3 plot_point_data.py --input UKMO_Aug26.nc --output forecast_sp_ukmo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1 --member 1 2
+   156	8:05	feh /home/marcio/scripts/modelos/copernicus/forecast_sp_ukmo.png
+   157	8:07	h
+   158	8:07	python3 get_BOM_daily.py
+   159	8:23	ll
+   160	8:24	mv 4d1d275b9b6a12bf529e37d0a7a5f75c.nc MET_FRA-Aug26.nc
+   161	8:24	python3 plot_point_data.py --input MET_FRA-Aug26.nc --output forecast_sp_ukmo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   162	8:25	feh /home/marcio/scripts/modelos/copernicus/forecast_sp_ukmo.png
+   163	8:32	python3 plot_point_data.py --input MET_FRA-Aug26.nc --model Meteo_France--output forecast_sp_meteo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   164	8:33	python3 plot_point_data.py --input MET_FRA-Aug26.nc --model Meteo_France --output forecast_sp_meteo.png --latitude -23.55 --longitude -46.63 --local "São Paulo - SP" --init-year 2026 --init-month 8 --init-day 1
+   165	8:33	feh /home/marcio/scripts/modelos/copernicus/forecast_sp_meteo.png
+   166	8:34	ll
+   167	8:35	mkdir saida_graficos
+   168	17:04	cidade Cuiaba-MT
+   169	17:05	h
+   170	17:05	-15.59 -56.09
+   171	17:06	python3 plot_point_data.py --input UKMO_Aug26.nc --output saida_graficos/forecast_CY_ukmo.png --latitude -15.59 --longitude -56.09 --local "Cuiaba-MT" --init-year 2026 --init-month 8 --init-day 1
+   172	17:07	python3 plot_point_data.py --input UKMO_Aug26.nc --model UKMO --output saida_graficos/forecast_CY_ukmo.png --latitude -15.59 --longitude -56.09 --local "Cuiaba-MT" --init-year 2026 --init-month 8 --init-day 1
+   173	17:07	feh /home/marcio/scripts/modelos/copernicus/saida_graficos/forecast_CY_ukmo.png
+   174	19:28	h >> history.txt
