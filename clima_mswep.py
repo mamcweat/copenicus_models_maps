@@ -23,7 +23,7 @@ import subprocess
 import numpy as np
 import xarray as xr
 
-DIR_MSWEP = "/home/marcio/scripts/MSWEP"
+DIR_MSWEP = os.getenv("DIR_MSWEP", os.path.expanduser("~/scripts/MSWEP"))
 # domínio com folga em relação ao dos mapas (lon -109,5..-20,5, lat -59,5..19,5)
 LON = (-115.0, -15.0)
 LAT = (25.0, -65.0)

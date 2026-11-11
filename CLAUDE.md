@@ -79,7 +79,16 @@ Cuidados de interpretação:
 
 ## Ambiente
 
-- Python do miniconda (`/home/marcio/miniconda3/bin/python3`), shell tcsh.
+- Máquina de desenvolvimento (notebook): Python do miniconda (`/home/marcio/miniconda3/bin/python3`),
+  shell tcsh.
+- Produção: o repositório é clonado numa VM, onde roda o crontab (`cron_copernicus.sh`, ver
+  README). Dependências em `environment.yml` (conda-forge + pip: cdsapi, ecmwf-datastores-client).
+  Credenciais em `~/.cdsapirc`; o `ecmwf.datastores` lê a mesma url/key desse arquivo.
+- Todos os caminhos são relativos ao diretório do script (`BASE_DIR`). O `automacao` passa
+  `--dir_saida` ao `gera_mapas_previsao.py`, porque sem isso o cron gravava os mapas relativos ao
+  diretório corrente. Não reintroduzir caminhos absolutos de /home/marcio.
+- `saida_modelos/`, `saida_mapas/`, `logs/` e os PDFs comparativos não são versionados: o
+  histórico de validação (`saida_mapas/Verificação/`) só existe onde foi gerado.
 - Bibliotecas: xarray, cartopy 0.24, geopandas, shapely 2, scipy, matplotlib, PIL, cdsapi.
   OpenCV e tesseract **não** estão instalados.
 - Shapefiles Natural Earth em cache: `~/.local/share/cartopy/shapefiles/natural_earth/`.

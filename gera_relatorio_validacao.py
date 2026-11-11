@@ -19,6 +19,7 @@ import argparse
 import glob
 import html
 import os
+import shutil
 import subprocess
 from datetime import date
 
@@ -373,7 +374,10 @@ inverno) fica quase toda na categoria normal, com HSS próximo de zero.</li></ul
     with open(html_arq, "w") as f:
         f.write(doc)
     pdf = os.path.abspath(os.path.join(base, f"Relatorio_Validacao_{nome}.pdf"))
-    subprocess.run(["google-chrome", "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+    navegador = next((b for b in ("google-chrome", "chromium", "chromium-browser") if shutil.which(b)), None)
+    if not navegador:
+        raise SystemExit(f"HTML gerado em {html_arq}, mas falta google-chrome/chromium para gerar o PDF.")
+    subprocess.run([navegador, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
                     "--allow-file-access-from-files", f"--print-to-pdf={pdf}", html_arq],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print(f"-> {pdf}\n   (HTML: {html_arq})")

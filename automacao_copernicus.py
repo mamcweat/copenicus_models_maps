@@ -181,11 +181,12 @@ def baixar_e_processar_modelo(modelo: str, month: str, year: str) -> bool:
         "--f_hindcast", str(f_hind),
         "--modelo", modelo_upper,
         "--mes", month_str,
-        "--ano", year_str
+        "--ano", year_str,
+        "--dir_saida", str(MAPAS_DIR)
     ]
 
     print(f"[+] Gerando mapas: {' '.join(cmd)}")
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=BASE_DIR)
 
     if res.returncode == 0:
         print(f"[+] Mapas gerados com sucesso para {modelo_upper}.")

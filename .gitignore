@@ -3,3 +3,8 @@
 # Saídas grandes geradas (NetCDF diário > 100 MB e PDFs comparativos)
 *_daily_*.nc
 Comparativo_Modelos_*.pdf
+
+# Temporários e logs
+temp_*.zip
+*.log
+__pycache__/

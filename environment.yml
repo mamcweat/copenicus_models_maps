@@ -1,0 +1,24 @@
+# Ambiente conda do projeto (versões testadas em 11/2026).
+#   conda env create -f environment.yml
+#   conda activate copernicus
+name: copernicus
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - numpy>=2.2
+  - pandas>=2.2
+  - scipy>=1.16
+  - xarray>=2025.6
+  - netcdf4>=1.7
+  - matplotlib>=3.10
+  - cartopy=0.24
+  - geopandas>=1.1
+  - shapely>=2.1
+  - pyproj>=3.7
+  - pillow>=11
+  - python-dateutil>=2.9
+  - pip
+  - pip:
+      - cdsapi>=0.7.6
+      - ecmwf-datastores-client>=0.4
