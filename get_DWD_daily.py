@@ -2,15 +2,15 @@ import cdsapi
 
 dataset = "seasonal-original-single-levels"
 request = {
-    "originating_centre": "bom",
-    "system": "2",
+    "originating_centre": "dwd",
+    "system": "22",
     "variable": [
         "maximum_2m_temperature_in_the_last_24_hours",
         "minimum_2m_temperature_in_the_last_24_hours",
         "total_precipitation"
     ],
     "year": ["2026"],
-    "month": ["08"],
+    "month": ["10"],
     "day": ["01"],
     "leadtime_hour": [
         "24",
@@ -194,9 +194,7 @@ request = {
         "4296",
         "4320",
         "4344",
-        "4368",
-        "4392",
-        "4416"
+        "4368"
     ],
     "data_format": "netcdf",
     "area": [20, -110, -60, -20]
