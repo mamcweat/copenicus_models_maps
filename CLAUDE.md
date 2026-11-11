@@ -11,6 +11,11 @@ observado (CPTEC-MERGE). Idioma do projeto: português.
    (hindcast/climatologia) e chama `gera_mapas_previsao.py`. Esses .nc são **sobrescritos** a
    cada rodada, por isso a validação usa os PNGs, não os .nc. Pode rodar via crontab.
    Modelos: bom, dwd, cmcc, ecmwf, meteo_france, ukmo, ncep, eccc, jma (`MODEL_SYSTEM_MAP`).
+   Antes de baixar, consulta o catálogo do CDS (endpoint de constraints, via `ecmwf.datastores`,
+   sem gerar pedido na fila) e pula modelos cuja rodada ainda não foi publicada (costuma sair no
+   meio do mês). `--verificar` só consulta; `--pendentes` pula modelos com mapas já gerados;
+   `--month/--year` têm como padrão o mês atual. Termina com código 0 só se todos ficaram prontos,
+   o que permite rodar diariamente pelo crontab na 2ª quinzena.
 2. `gera_mapas_previsao.py` gera 6 meses (M1..M6) de PR, TMAX e TMIN, absoluto e anomalia, em
    `saida_mapas/<MODELO>_<AAAAMM da rodada>/mapa_<MODELO>_<VAR>_<abs|anom>_M<k>_<AAAAMM alvo>.png`.
    Domínio: lon −109,5..−20,5, lat −59,5..19,5, grade de 1°. A anomalia é previsão − hindcast.
@@ -97,5 +102,7 @@ RS/Norte; quase todos os modelos subestimaram (viés negativo no Brasil, exceto 
 
 ## Pendências conhecidas
 
-- `MODEL_SYSTEM_MAP` em `automacao_copernicus.py` tem a chave `meteo_france` duplicada
-  (8 e 9); vale a última (9).
+- ECCC: trocado em 11/11/2026 do sistema 3 (sem rodadas desde 2024; por isso o ECCC nunca gerou
+  mapas) para o 5. O CDS também tem o 4 (outro modelo do CanSIPS, mesma data de início). Ainda
+  não há mapas nem validação do ECCC; conferir a primeira rodada no gera_mapas_previsao.py.
+- A chave `meteo_france` duplicada no `MODEL_SYSTEM_MAP` foi corrigida em 11/11/2026 (sistema 9).

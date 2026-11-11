@@ -169,7 +169,8 @@ def main():
 
     global COLS, ROWS
     n = len(modelos)
-    COLS = 4 if n > 4 else n
+    # até 8 modelos: 4 colunas (4x2, layout original); 9-10 (com ECCC): 5x2
+    COLS = n if n <= 4 else (4 if n <= 8 else 5)
     ROWS = -(-n // COLS)
 
     cell_h = round(CELL_W * 2200 / 2670)

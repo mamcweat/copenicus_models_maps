@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import zipfile
+from datetime import date, datetime
 from pathlib import Path
 import cdsapi
 
@@ -17,13 +18,83 @@ MODEL_SYSTEM_MAP = {
     "dwd": "22",
     "cmcc": "4",
     "ecmwf": "51",
-    "meteo_france": "8",
+    "meteo_france": "9",
     "ukmo": "610",
     "ncep": "2",
-    "eccc": "3",
-    "meteo_france": "9",
+    "eccc": "5",
     "jma": "4"
 }
+
+DATASET = "seasonal-monthly-single-levels"
+VARIAVEIS = [
+    "maximum_2m_temperature_in_the_last_24_hours",
+    "minimum_2m_temperature_in_the_last_24_hours",
+    "total_precipitation"
+]
+PRODUTOS = ["ensemble_mean", "hindcast_climate_mean"]
+MAPAS_DIR = BASE_DIR / "saida_mapas"
+
+
+def _cliente_constraints():
+    """Cliente leve do CDS para consultar o catálogo (não cria pedidos na fila)."""
+    from ecmwf.datastores import Client
+    cfg = {}
+    rc = Path.home() / ".cdsapirc"
+    if rc.exists():
+        for linha in rc.read_text().splitlines():
+            if ":" in linha:
+                k, v = linha.split(":", 1)
+                cfg[k.strip()] = v.strip()
+    url = os.getenv("CDSAPI_URL") or cfg.get("url")
+    key = os.getenv("CDSAPI_KEY") or cfg.get("key")
+    return Client(url=url, key=key)
+
+
+def verificar_disponibilidade(modelos, month: str, year: str) -> dict:
+    """Consulta o catálogo do CDS (endpoint de constraints) para saber se a rodada
+    AAAAMM de cada modelo já foi publicada, com previsão e hindcast das 3 variáveis.
+
+    Retorna {modelo: True | False | None}; None = não foi possível consultar
+    (nesse caso o download é tentado mesmo assim).
+    """
+    month_str = f"{int(month):02d}"
+    try:
+        client = _cliente_constraints()
+    except Exception as e:
+        print(f"[!] Não foi possível consultar o catálogo do CDS ({e}); seguindo sem verificação.")
+        return {m: None for m in modelos}
+
+    status = {}
+    for modelo in modelos:
+        m = modelo.lower()
+        ok = True
+        try:
+            for produto in PRODUTOS:
+                r = client.apply_constraints(DATASET, {
+                    "originating_centre": m,
+                    "system": MODEL_SYSTEM_MAP[m],
+                    "year": [str(year)],
+                    "product_type": [produto],
+                    "variable": VARIAVEIS,
+                })
+                meses = r.get("month", [])
+                if month_str not in meses:
+                    ok = False
+                    if not meses:
+                        print(f"[!] {m.upper()}: o sistema {MODEL_SYSTEM_MAP[m]} não tem nenhuma rodada em "
+                              f"{year} no CDS — provavelmente foi descontinuado; revise MODEL_SYSTEM_MAP.")
+                    break
+            status[m] = ok
+        except Exception as e:
+            print(f"[!] {m.upper()}: falha na consulta ao catálogo ({e}).")
+            status[m] = None
+    return status
+
+
+def mapas_ja_gerados(modelo: str, month: str, year: str) -> bool:
+    pasta = MAPAS_DIR / f"{modelo.upper()}_{year}{int(month):02d}"
+    return pasta.is_dir() and any(pasta.glob("mapa_*_PR_anom_M1_*.png"))
+
 
 def baixar_e_processar_modelo(modelo: str, month: str, year: str) -> bool:
     """Baixa o ZIP do Copernicus, extrai data_1.nc e data_2.nc, renomeia e gera os mapas."""
@@ -46,15 +117,8 @@ def baixar_e_processar_modelo(modelo: str, month: str, year: str) -> bool:
     request = {
         "originating_centre": modelo_lower,
         "system": system_id,
-        "variable": [
-            "maximum_2m_temperature_in_the_last_24_hours",
-            "minimum_2m_temperature_in_the_last_24_hours",
-            "total_precipitation"
-        ],
-        "product_type": [
-            "ensemble_mean",
-            "hindcast_climate_mean"
-        ],
+        "variable": VARIAVEIS,
+        "product_type": PRODUTOS,
         "year": [year_str],
         "month": [month_str],
         "leadtime_month": ["1", "2", "3", "4", "5", "6"],
@@ -66,7 +130,7 @@ def baixar_e_processar_modelo(modelo: str, month: str, year: str) -> bool:
     try:
         client = cdsapi.Client()
         # Forçar o salvamento do download no caminho específico fornecendo 'target'
-        result = client.retrieve("seasonal-monthly-single-levels", request)
+        result = client.retrieve(DATASET, request)
         result.download(target=str(temp_zip))
     except Exception as e:
         print(f"[-] Erro ao realizar o download no Copernicus: {e}")
@@ -133,26 +197,67 @@ def baixar_e_processar_modelo(modelo: str, month: str, year: str) -> bool:
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description="Automação de download e geração de mapas operacionais do CDS Copernicus.")
+    hoje = date.today()
+    parser = argparse.ArgumentParser(
+        description="Automação de download e geração de mapas operacionais do CDS Copernicus.",
+        epilog="As rodadas costumam ser publicadas no CDS por volta do meio do mês. Antes de baixar, "
+               "o script consulta o catálogo e pula os modelos ainda não publicados. Para o crontab, "
+               "rode diariamente na 2ª quinzena com --pendentes: só baixa o que falta e termina com "
+               "código 0 quando todos os modelos do mês estão prontos.")
     parser.add_argument("--modelo", type=str, choices=list(MODEL_SYSTEM_MAP.keys()) + ["ALL", "all"], help="Origem do modelo ou 'ALL' para rodar todos.")
-    parser.add_argument("--month", type=str, help="Mês da previsão (01 a 12).")
-    parser.add_argument("--year", type=str, help="Ano da previsão (ex: 2026).")
+    parser.add_argument("--month", type=str, default=f"{hoje.month:02d}", help="Mês da previsão (01 a 12; padrão: mês atual).")
+    parser.add_argument("--year", type=str, default=str(hoje.year), help="Ano da previsão (padrão: ano atual).")
     parser.add_argument("--all", action="store_true", help="Executa para todos os modelos cadastrados.")
+    parser.add_argument("--verificar", action="store_true", help="Só verifica a publicação no CDS, sem baixar.")
+    parser.add_argument("--pendentes", action="store_true", help="Pula modelos cujos mapas do mês já foram gerados.")
+    parser.add_argument("--sem-verificacao", action="store_true", help="Baixa sem consultar o catálogo antes.")
 
     args = parser.parse_args()
-
-    if not args.month or not args.year:
-        parser.error("Os argumentos --month e --year são obrigatórios.")
 
     if args.all or (args.modelo and args.modelo.upper() == "ALL"):
         modelos_para_rodar = list(MODEL_SYSTEM_MAP.keys())
     elif args.modelo:
-        modelos_para_rodar = [args.modelo]
+        modelos_para_rodar = [args.modelo.lower()]
     else:
         parser.error("Informe um modelo com --modelo <NOME> ou utilize a opção --all.")
 
+    rodada = f"{args.year}{int(args.month):02d}"
+    print(f"[i] Rodada {rodada} — {datetime.now():%d/%m/%Y %H:%M}")
+
+    prontos = []
+    if args.pendentes:
+        prontos = [m for m in modelos_para_rodar if mapas_ja_gerados(m, args.month, args.year)]
+        for m in prontos:
+            print(f"[=] {m.upper()}: mapas de {rodada} já gerados, pulando.")
+        modelos_para_rodar = [m for m in modelos_para_rodar if m not in prontos]
+
+    if args.sem_verificacao:
+        status = {m: None for m in modelos_para_rodar}
+    else:
+        status = verificar_disponibilidade(modelos_para_rodar, args.month, args.year)
+        print(f"\n[i] Publicação no CDS ({DATASET}), rodada {rodada}:")
+        for m in modelos_para_rodar:
+            s = status[m]
+            txt = "disponível" if s else ("AINDA NÃO PUBLICADO" if s is False else "não verificado")
+            print(f"    {m.upper():<13} sistema {MODEL_SYSTEM_MAP[m]:<4} {txt}")
+
+    if args.verificar:
+        faltam = [m for m, s in status.items() if not s]
+        sys.exit(1 if faltam else 0)
+
+    sucesso, falha, indisponivel = [], [], []
     for mod in modelos_para_rodar:
-        baixar_e_processar_modelo(mod, args.month, args.year)
+        if status[mod] is False:
+            indisponivel.append(mod)
+            continue
+        (sucesso if baixar_e_processar_modelo(mod, args.month, args.year) else falha).append(mod)
+
+    print(f"\n[i] Resumo da rodada {rodada}:")
+    for rot, lst in [("já prontos", prontos), ("processados", sucesso),
+                     ("não publicados", indisponivel), ("com erro", falha)]:
+        if lst:
+            print(f"    {rot:<15} {', '.join(m.upper() for m in lst)}")
+    sys.exit(1 if (falha or indisponivel) else 0)
 
 if __name__ == "__main__":
     main()
