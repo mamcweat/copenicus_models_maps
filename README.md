@@ -73,7 +73,9 @@ python automacao_copernicus.py --modelo ecmwf --month 10 --year 2026
 python automacao_copernicus.py --all --pendentes              # só o que falta
 python automacao_copernicus.py --all --verificar              # só consulta a publicação
 python gera_multimodelo.py --rodada 202611                    # consenso (média dos modelos)
-python gera_pdf_comparativo.py --rodada 202611
+python gera_pdf_comparativo.py --rodada 202611                # ~17 MB (800 px, JPEG 60)
+python gera_pdf_comparativo.py --rodada 202611 --largura 1100 --qualidade 75 \
+       --saida-pdf Comparativo_Modelos_202611_alta.pdf         # alta resolução (~33 MB)
 ```
 
 ## Validação mensal (contra o CPTEC-MERGE)

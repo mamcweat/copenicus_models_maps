@@ -30,8 +30,10 @@ observado (CPTEC-MERGE). Idioma do projeto: português.
    modelos cujo `saida_modelos/<MODELO>.rodada` (gravado pelo automacao) é a rodada pedida, porque
    os .nc são sobrescritos. Grava `multimodelo.json` (modelos usados e limiar).
 4. `gera_pdf_comparativo.py` monta o PDF comparativo (`Comparativo_Modelos_<AAAAMM>.pdf`) com a
-   grade de todos os modelos por variável/tipo/mês. O MULTIMODELO fica no último painel (10º do
-   5x2), e o rodapé de cada página explica como ele é calculado.
+   grade de todos os modelos por variável/tipo/mês: chuva com absoluto e anomalia, Tmax/Tmin só
+   anomalia (29 páginas). O MULTIMODELO fica no último painel (10º do 5x2), e o rodapé de cada
+   página explica como ele é calculado. Padrão `--largura 800 --qualidade 60` (~17 MB, para caber
+   num e-mail do Gmail); `--largura 1100 --qualidade 75` dá a alta resolução (~33 MB).
 5. `prepara_verificacao.py --alvo AAAAMM [--obs PNG]` monta as pastas de verificação do mês-alvo
    (M1 → `OUT26`, M2 → `SET26-OUT26`, M3 → `AGO26-OUT26`, ...) copiando os mapas PR_anom de cada
    rodada existente; com `--obs` copia a anomalia MERGE como `OBS_<MES><AA>.png`. Não sobrescreve
@@ -121,6 +123,11 @@ BOM, JMA. NCEP e METEO_FRANCE ficam no fim. Out/2026 teve anomalia positiva no C
 RS/Norte; quase todos os modelos subestimaram (viés negativo no Brasil, exceto NCEP, que superestima).
 
 ## Pendências conhecidas
+
+- Tamanho do PDF comparativo (11/11/2026): o padrão ficou na versão intermediária (800 px, JPEG 60,
+  ~17,5 MB, ~23 MB como anexo, no limite do Gmail). Avaliar depois com o usuário se a legibilidade
+  basta ou se o limite do e-mail exige a versão leve (650 px/60, ~13 MB, cabe também no Outlook),
+  ou ainda se vale gerar duas versões (e-mail e alta resolução para arquivo).
 
 - MULTIMODELO criado em 11/11/2026, a partir da rodada 202611. Ele entra sozinho no
   `prepara_verificacao.py`/`valida_previsoes.py` como mais um "modelo"; a primeira validação

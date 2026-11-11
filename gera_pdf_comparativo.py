@@ -14,18 +14,22 @@ from PIL import Image, ImageDraw, ImageFont
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
+TIPOS = {
+    "abs": "Previsão Absoluta",
+    "anom": "Anomalia (vs Climatologia)",
+}
+# Temperaturas só com anomalia (mais útil que o valor médio e deixa o PDF menor);
+# chuva com absoluto e anomalia.
 VARIAVEIS = [
-    ("PR", "Precipitação — Chuva Acumulada (mm)"),
-    ("TMAX", "Temperatura Máxima (°C)"),
-    ("TMIN", "Temperatura Mínima (°C)"),
-]
-TIPOS = [
-    ("abs", "Previsão Absoluta"),
-    ("anom", "Anomalia (vs Climatologia)"),
+    ("PR", "Precipitação — Chuva Acumulada (mm)", ["abs", "anom"]),
+    ("TMAX", "Temperatura Máxima (°C)", ["anom"]),
+    ("TMIN", "Temperatura Mínima (°C)", ["anom"]),
 ]
 MESES = [f"M{i}" for i in range(1, 7)]
 
-CELL_W = 1100  # largura de cada mapa na grade, em pixels
+LARGURA_PADRAO = 800  # largura de cada mapa em px (--largura); 1100 = alta resolução
+CELL_W = LARGURA_PADRAO
+QUALIDADE = 60  # qualidade JPEG das páginas (--qualidade); 800/60 ≈ 17 MB, cabe no Gmail
 COLS = 4
 ROWS = 2
 PAD = 18
@@ -147,6 +151,23 @@ def monta_pagina(modelos, saida_mapas_dir, rodada_tag, var_code, var_label,
     return page
 
 
+def quebra_linhas(paragrafos, largura, fonte):
+    """Quebra cada parágrafo em linhas que caibam na largura (px) com a fonte dada."""
+    linhas = []
+    for par in paragrafos:
+        atual = ""
+        for palavra in par.split():
+            teste = f"{atual} {palavra}".strip()
+            if atual and fonte.getlength(teste) > largura:
+                linhas.append(atual)
+                atual = palavra
+            else:
+                atual = teste
+        if atual:
+            linhas.append(atual)
+    return linhas
+
+
 def desenha_rodape(draw, page_h):
     f_footer = ImageFont.truetype(FONT_REG, 22)
     y = page_h - FOOTER_H + 15
@@ -173,7 +194,7 @@ def monta_capa(rodada_tag, modelos_nomes, page_w, page_h):
     draw.text((page_w // 2, page_h // 2 - 60), f"Rodada {mes}/{ano}",
               font=f_h2, fill=(80, 80, 80), anchor="mm", align="center")
     draw.text((page_w // 2, page_h // 2 + 20),
-              "Meses de previsão M1 a M6  ·  Variáveis: Precipitação, T. Máxima, T. Mínima",
+              "Meses de previsão M1 a M6  ·  Chuva (absoluto e anomalia)  ·  Anomalia de T. Máxima e T. Mínima",
               font=f_body, fill=(110, 110, 110), anchor="mm", align="center")
     modelos_txt = "Modelos: " + ", ".join(modelos_nomes)
     draw.text((page_w // 2, page_h // 2 + 90), modelos_txt,
@@ -199,6 +220,8 @@ def main():
     ap.add_argument("--rodada", default="202609", help="AAAAMM da rodada, ex: 202609")
     ap.add_argument("--saida-mapas", default="saida_mapas")
     ap.add_argument("--saida-pdf", default=None)
+    ap.add_argument("--largura", type=int, default=LARGURA_PADRAO, help="Largura de cada mapa em px (padrão: %(default)s)")
+    ap.add_argument("--qualidade", type=int, default=QUALIDADE, help="Qualidade JPEG (padrão: %(default)s)")
     args = ap.parse_args()
 
     modelos = encontra_modelos(args.saida_mapas, args.rodada)
@@ -206,14 +229,17 @@ def main():
         raise SystemExit(f"Nenhum modelo encontrado para a rodada {args.rodada}")
     print(f"Modelos encontrados ({len(modelos)}): {[m for m, _ in modelos]}")
 
-    global COLS, ROWS, FOOTER_H, NOTA_MULTI
-    NOTA_MULTI = nota_multimodelo(modelos)
-    if NOTA_MULTI:
-        FOOTER_H = 60 + 38 * len(NOTA_MULTI) + 6
+    global COLS, ROWS, FOOTER_H, NOTA_MULTI, CELL_W
+    CELL_W = args.largura
     n = len(modelos)
     # até 8 painéis: 4 colunas (4x2, layout original); 9-10 (9 modelos + MULTIMODELO): 5x2
     COLS = n if n <= 4 else (4 if n <= 8 else 5)
     ROWS = -(-n // COLS)
+    nota = nota_multimodelo(modelos)
+    if nota:
+        largura_util = COLS * CELL_W + (COLS - 1) * PAD
+        NOTA_MULTI = quebra_linhas(nota, largura_util, ImageFont.truetype(FONT_REG, 26))
+        FOOTER_H = 60 + 38 * len(NOTA_MULTI) + 6
 
     cell_h = round(CELL_W * 2200 / 2670)
     grid_w = COLS * CELL_W + (COLS + 1) * PAD
@@ -224,8 +250,9 @@ def main():
     paginas = []
     paginas.append(monta_capa(args.rodada, [m for m, _ in modelos], page_w, page_h))
 
-    for var_code, var_label in VARIAVEIS:
-        for tipo_code, tipo_label in TIPOS:
+    for var_code, var_label, tipos in VARIAVEIS:
+        for tipo_code in tipos:
+            tipo_label = TIPOS[tipo_code]
             paginas.append(monta_separador(var_label, tipo_label, page_w, page_h))
             for mes_idx in MESES:
                 pg = monta_pagina(modelos, args.saida_mapas, args.rodada,
@@ -236,8 +263,9 @@ def main():
                     print(f"  aviso: sem dados para {var_code}/{tipo_code}/{mes_idx}")
 
     saida_pdf = args.saida_pdf or f"Comparativo_Modelos_{args.rodada}.pdf"
-    paginas[0].save(saida_pdf, save_all=True, append_images=paginas[1:])
-    print(f"PDF gerado: {saida_pdf}  ({len(paginas)} páginas)")
+    paginas[0].save(saida_pdf, save_all=True, append_images=paginas[1:], quality=args.qualidade)
+    tam = os.path.getsize(saida_pdf) / 2**20
+    print(f"PDF gerado: {saida_pdf}  ({len(paginas)} páginas, {tam:.1f} MB)")
 
 
 if __name__ == "__main__":
