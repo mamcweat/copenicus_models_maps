@@ -21,6 +21,7 @@ observado (CPTEC-MERGE). Idioma do projeto: português.
    Domínio: lon −109,5..−20,5, lat −59,5..19,5, grade de 1°. A anomalia é previsão − hindcast.
    A paleta de anomalia de chuva está em `get_cmap_anomalia_chuva()`
    (níveis −300,−200,−150,−100,−50,−20,20,50,100,150,200,300; branco de −20 a 20).
+   Os mapas absolutos de Tmax/Tmin continuam sendo gerados, mas não entram no PDF comparativo.
 3. `gera_multimodelo.py --rodada AAAAMM` gera o consenso `saida_mapas/MULTIMODELO_<AAAAMM>/`
    (mesmos nomes de arquivo dos modelos). A anomalia é a média, com peso igual, das anomalias de
    cada modelo (previsão − hindcast próprio), o que é igual à média das previsões menos a média dos
@@ -134,6 +135,7 @@ RS/Norte; quase todos os modelos subestimaram (viés negativo no Brasil, exceto 
   possível é a de NOV26 (M1). Comparar o desempenho dele com o dos modelos individuais.
 
 - ECCC: trocado em 11/11/2026 do sistema 3 (sem rodadas desde 2024; por isso o ECCC nunca gerou
-  mapas) para o 5. O CDS também tem o 4 (outro modelo do CanSIPS, mesma data de início). Ainda
-  não há mapas nem validação do ECCC; conferir a primeira rodada no gera_mapas_previsao.py.
+  mapas) para o 5. O CDS também tem o 4 (outro modelo do CanSIPS, mesma data de início). A rodada
+  202611 gerou mapas coerentes com os outros modelos; ainda não há validação do ECCC (primeira
+  possível: NOV26).
 - A chave `meteo_france` duplicada no `MODEL_SYSTEM_MAP` foi corrigida em 11/11/2026 (sistema 9).
