@@ -21,18 +21,27 @@ observado (CPTEC-MERGE). Idioma do projeto: português.
    Domínio: lon −109,5..−20,5, lat −59,5..19,5, grade de 1°. A anomalia é previsão − hindcast.
    A paleta de anomalia de chuva está em `get_cmap_anomalia_chuva()`
    (níveis −300,−200,−150,−100,−50,−20,20,50,100,150,200,300; branco de −20 a 20).
-3. `gera_pdf_comparativo.py` monta o PDF comparativo (`Comparativo_Modelos_<AAAAMM>.pdf`) com a
-   grade de todos os modelos por variável/tipo/mês.
-4. `prepara_verificacao.py --alvo AAAAMM [--obs PNG]` monta as pastas de verificação do mês-alvo
+3. `gera_multimodelo.py --rodada AAAAMM` gera o consenso `saida_mapas/MULTIMODELO_<AAAAMM>/`
+   (mesmos nomes de arquivo dos modelos). A anomalia é a média, com peso igual, das anomalias de
+   cada modelo (previsão − hindcast próprio), o que é igual à média das previsões menos a média dos
+   hindcasts. O absoluto é a média das previsões. Nos mapas de anomalia, o pontilhado (cinza
+   #7a7a7a, claro para não confundir o georreferenciamento do validador) marca onde menos de
+   ⌈7N/9⌉ modelos concordam com o sinal. O JMA (1,25°) é interpolado para 1°. Só entram os
+   modelos cujo `saida_modelos/<MODELO>.rodada` (gravado pelo automacao) é a rodada pedida, porque
+   os .nc são sobrescritos. Grava `multimodelo.json` (modelos usados e limiar).
+4. `gera_pdf_comparativo.py` monta o PDF comparativo (`Comparativo_Modelos_<AAAAMM>.pdf`) com a
+   grade de todos os modelos por variável/tipo/mês. O MULTIMODELO fica no último painel (10º do
+   5x2), e o rodapé de cada página explica como ele é calculado.
+5. `prepara_verificacao.py --alvo AAAAMM [--obs PNG]` monta as pastas de verificação do mês-alvo
    (M1 → `OUT26`, M2 → `SET26-OUT26`, M3 → `AGO26-OUT26`, ...) copiando os mapas PR_anom de cada
    rodada existente; com `--obs` copia a anomalia MERGE como `OBS_<MES><AA>.png`. Não sobrescreve
    sem `--force`.
-5. `valida_previsoes.py` faz a validação espacial da previsão contra o observado (detalhes abaixo).
-6. `gera_relatorio_validacao.py --alvo AAAAMM` gera `Verificação/Relatorio_Validacao_<MES><AA>.pdf`
+6. `valida_previsoes.py` faz a validação espacial da previsão contra o observado (detalhes abaixo).
+7. `gera_relatorio_validacao.py --alvo AAAAMM` gera `Verificação/Relatorio_Validacao_<MES><AA>.pdf`
    (resumo, comparação entre rodadas e uma seção por rodada), a partir dos CSV/PNG de
    `<PASTA>/validacao/`; rodar depois do `valida_previsoes.py`. HTML de apoio em
    `Verificação/relatorio_<MES><AA>/`.
-7. `clima_mswep.py` (preparado, ainda não usado): baixa via rclone os mensais MSWEP 1993–2016 e
+8. `clima_mswep.py` (preparado, ainda não usado): baixa via rclone os mensais MSWEP 1993–2016 e
    gera `~/scripts/MSWEP/clima/mswep_clima_1993-2016.nc`, para no futuro validar contra o MSWEP.
 
 ## Validação (`valida_previsoes.py`)
@@ -87,8 +96,10 @@ Cuidados de interpretação:
 - Todos os caminhos são relativos ao diretório do script (`BASE_DIR`). O `automacao` passa
   `--dir_saida` ao `gera_mapas_previsao.py`, porque sem isso o cron gravava os mapas relativos ao
   diretório corrente. Não reintroduzir caminhos absolutos de /home/marcio.
-- `saida_modelos/`, `saida_mapas/`, `logs/` e os PDFs comparativos não são versionados: o
-  histórico de validação (`saida_mapas/Verificação/`) só existe onde foi gerado.
+- `saida_modelos/`, `saida_mapas/`, `logs/` e os PDFs comparativos não são versionados.
+- A validação mensal roda no **notebook**, onde fica o histórico (`saida_mapas/Verificação/`).
+  Antes do `prepara_verificacao.py`, traga da VM os mapas novos (sem `--delete`):
+  `rsync -av --exclude 'Verificação/' <vm>:<clone>/saida_mapas/ saida_mapas/`.
 - Bibliotecas: xarray, cartopy 0.24, geopandas, shapely 2, scipy, matplotlib, PIL, cdsapi.
   OpenCV e tesseract **não** estão instalados.
 - Shapefiles Natural Earth em cache: `~/.local/share/cartopy/shapefiles/natural_earth/`.
@@ -110,6 +121,10 @@ BOM, JMA. NCEP e METEO_FRANCE ficam no fim. Out/2026 teve anomalia positiva no C
 RS/Norte; quase todos os modelos subestimaram (viés negativo no Brasil, exceto NCEP, que superestima).
 
 ## Pendências conhecidas
+
+- MULTIMODELO criado em 11/11/2026, a partir da rodada 202611. Ele entra sozinho no
+  `prepara_verificacao.py`/`valida_previsoes.py` como mais um "modelo"; a primeira validação
+  possível é a de NOV26 (M1). Comparar o desempenho dele com o dos modelos individuais.
 
 - ECCC: trocado em 11/11/2026 do sistema 3 (sem rodadas desde 2024; por isso o ECCC nunca gerou
   mapas) para o 5. O CDS também tem o 4 (outro modelo do CanSIPS, mesma data de início). Ainda

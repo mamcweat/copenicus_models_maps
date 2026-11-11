@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Rotina do crontab: baixa a rodada do mês atual dos modelos já publicados no CDS
-# e, quando todos estiverem prontos, gera o PDF comparativo (uma única vez).
+# e, quando todos estiverem prontos, gera o MULTIMODELO e o PDF comparativo (uma única vez).
 #
 # Pode rodar várias vezes por dia na janela de publicação (meio do mês):
 #   - modelos com mapas já gerados são pulados (--pendentes);
@@ -33,7 +33,9 @@ fi
     "$PYTHON" -u automacao_copernicus.py --all --pendentes
     rc=$?
     if [ "$rc" -eq 0 ] && [ ! -f "Comparativo_Modelos_${RODADA}.pdf" ]; then
-        echo "[i] Todos os modelos prontos; gerando o PDF comparativo de ${RODADA}."
+        echo "[i] Todos os modelos prontos; gerando o MULTIMODELO e o PDF comparativo de ${RODADA}."
+        "$PYTHON" gera_multimodelo.py --rodada "$RODADA" \
+            || echo "[-] Falha no MULTIMODELO; o PDF sai só com os modelos."
         "$PYTHON" gera_pdf_comparativo.py --rodada "$RODADA"
     fi
 } >> "$LOG" 2>&1

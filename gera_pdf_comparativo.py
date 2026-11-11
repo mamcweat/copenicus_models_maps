@@ -5,6 +5,7 @@ mes de previsao (M1..M6) contendo a grade de todos os modelos disponiveis.
 """
 import argparse
 import glob
+import json
 import os
 import re
 
@@ -30,6 +31,8 @@ ROWS = 2
 PAD = 18
 HEADER_H = 170
 FOOTER_H = 60
+MULTI = "MULTIMODELO"  # painel de consenso (gera_multimodelo.py), sempre o último
+NOTA_MULTI = None      # texto explicativo do rodapé, montado em main() se houver MULTIMODELO
 BG = (255, 255, 255)
 TITLE_COLOR = (20, 20, 20)
 SUBTITLE_COLOR = (90, 90, 90)
@@ -44,7 +47,31 @@ def encontra_modelos(saida_mapas_dir, rodada_tag):
         m = re.match(rf"^([A-Za-z_]+)_{rodada_tag}$", d)
         if m:
             modelos.append((m.group(1), full))
+    # o MULTIMODELO vai para o fim da grade (ocupa a 10ª posição do 5x2)
+    modelos.sort(key=lambda x: x[0] == MULTI)
     return modelos
+
+
+def nota_multimodelo(modelos):
+    """Texto do rodapé que explica como o MULTIMODELO é calculado."""
+    dir_multi = dict(modelos).get(MULTI)
+    if not dir_multi:
+        return None
+    try:
+        with open(os.path.join(dir_multi, "multimodelo.json")) as f:
+            meta = json.load(f)
+        usados, limiar = meta["modelos"], meta["limiar_concordancia"]
+    except (OSError, KeyError, ValueError):
+        usados, limiar = [m for m, _ in modelos if m != MULTI], 7
+    n = len(usados)
+    return [
+        f"MULTIMODELO: média simples, com peso igual, dos {n} modelos ({', '.join(usados)}). "
+        f"Anomalia = média das anomalias de cada modelo (previsão − hindcast do próprio modelo, "
+        f"isto é, cada um contra a sua climatologia) = média das previsões − média dos hindcasts.",
+        f"Absoluto = média das previsões. Pontilhado nos mapas de anomalia: menos de {limiar} dos {n} "
+        f"modelos concordam com o sinal da média (consenso fraco). Grade de 1° (JMA interpolado de "
+        f"1,25°); sem pesos por desempenho e sem membros individuais.",
+    ]
 
 
 def data_alvo(path):
@@ -91,7 +118,6 @@ def monta_pagina(modelos, saida_mapas_dir, rodada_tag, var_code, var_label,
     f_title = ImageFont.truetype(FONT_BOLD, 46)
     f_subtitle = ImageFont.truetype(FONT_REG, 32)
     f_model_missing = ImageFont.truetype(FONT_BOLD, 30)
-    f_footer = ImageFont.truetype(FONT_REG, 22)
 
     titulo = f"{var_label} — {tipo_label}"
     subtitulo = f"Mês de previsão {mes_idx}  ·  Alvo: {alvo}  ·  Rodada: {rodada_tag}"
@@ -116,10 +142,22 @@ def monta_pagina(modelos, saida_mapas_dir, rodada_tag, var_code, var_label,
             )
         draw.rectangle([x, y, x + CELL_W, y + cell_h], outline=(210, 210, 210), width=1)
 
-    rodape = "Comparativo entre modelos — Copernicus C3S Seasonal Forecast"
-    draw.text((PAD, page_h - FOOTER_H + 15), rodape, font=f_footer, fill=(140, 140, 140))
+    desenha_rodape(draw, page_h)
 
     return page
+
+
+def desenha_rodape(draw, page_h):
+    f_footer = ImageFont.truetype(FONT_REG, 22)
+    y = page_h - FOOTER_H + 15
+    if NOTA_MULTI:
+        f_nota = ImageFont.truetype(FONT_REG, 26)
+        for linha in NOTA_MULTI:
+            draw.text((PAD, y), linha, font=f_nota, fill=(70, 70, 70))
+            y += 38
+        y += 6
+    rodape = "Comparativo entre modelos — Copernicus C3S Seasonal Forecast"
+    draw.text((PAD, y), rodape, font=f_footer, fill=(140, 140, 140))
 
 
 def monta_capa(rodada_tag, modelos_nomes, page_w, page_h):
@@ -140,6 +178,7 @@ def monta_capa(rodada_tag, modelos_nomes, page_w, page_h):
     modelos_txt = "Modelos: " + ", ".join(modelos_nomes)
     draw.text((page_w // 2, page_h // 2 + 90), modelos_txt,
               font=f_body, fill=(110, 110, 110), anchor="mm", align="center")
+    desenha_rodape(draw, page_h)
     return page
 
 
@@ -167,9 +206,12 @@ def main():
         raise SystemExit(f"Nenhum modelo encontrado para a rodada {args.rodada}")
     print(f"Modelos encontrados ({len(modelos)}): {[m for m, _ in modelos]}")
 
-    global COLS, ROWS
+    global COLS, ROWS, FOOTER_H, NOTA_MULTI
+    NOTA_MULTI = nota_multimodelo(modelos)
+    if NOTA_MULTI:
+        FOOTER_H = 60 + 38 * len(NOTA_MULTI) + 6
     n = len(modelos)
-    # até 8 modelos: 4 colunas (4x2, layout original); 9-10 (com ECCC): 5x2
+    # até 8 painéis: 4 colunas (4x2, layout original); 9-10 (9 modelos + MULTIMODELO): 5x2
     COLS = n if n <= 4 else (4 if n <= 8 else 5)
     ROWS = -(-n // COLS)
 

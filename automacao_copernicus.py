@@ -171,6 +171,8 @@ def baixar_e_processar_modelo(modelo: str, month: str, year: str) -> bool:
         if temp_zip.exists():
             temp_zip.unlink()
 
+    # marca a rodada dos .nc (são sobrescritos a cada mês); usada pelo gera_multimodelo.py
+    (OUTPUT_DIR / f"{modelo_upper}.rodada").write_text(f"{year_str}{month_str}\n")
     print(f"[+] Arquivos extraídos e salvos: {f_prev.name} e {f_hind.name}")
 
     # Execução do script de geração de mapas

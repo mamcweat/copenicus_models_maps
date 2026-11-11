@@ -49,7 +49,8 @@ As rodadas costumam ser publicadas no CDS por volta do meio do mês. O
 `cron_copernicus.sh` pode rodar várias vezes por dia nessa janela:
 - consulta o catálogo do CDS e baixa só os modelos já publicados;
 - pula os modelos cujos mapas do mês já existem;
-- quando os 9 estão prontos, gera `Comparativo_Modelos_<AAAAMM>.pdf` uma única vez;
+- quando os 9 estão prontos, gera o consenso MULTIMODELO (`gera_multimodelo.py`) e
+  `Comparativo_Modelos_<AAAAMM>.pdf`, uma única vez;
 - usa uma trava (`flock`) para não rodar duas vezes ao mesmo tempo e grava o log em
   `logs/automacao_<AAAAMM>.log`.
 
@@ -71,14 +72,21 @@ python automacao_copernicus.py --all                          # mês atual
 python automacao_copernicus.py --modelo ecmwf --month 10 --year 2026
 python automacao_copernicus.py --all --pendentes              # só o que falta
 python automacao_copernicus.py --all --verificar              # só consulta a publicação
+python gera_multimodelo.py --rodada 202611                    # consenso (média dos modelos)
 python gera_pdf_comparativo.py --rodada 202611
 ```
 
 ## Validação mensal (contra o CPTEC-MERGE)
 
-Depois que o mês termina, com o PNG de anomalia do MERGE (layout Rural Clima) em mãos:
+A validação roda na máquina que guarda o histórico (`saida_mapas/Verificação/`), não na VM.
+Depois que o mês termina, traga da VM as rodadas novas e, com o PNG de anomalia do MERGE
+(layout Rural Clima) em mãos, rode:
 
 ```bash
+# mapas da VM (sem --delete, para não apagar rodadas antigas e o histórico local)
+rsync -av --exclude 'Verificação/' <vm>:copernicus/saida_mapas/ saida_mapas/
+rsync -av '<vm>:copernicus/Comparativo_Modelos_*.pdf' .          # opcional
+
 python prepara_verificacao.py --alvo 202610 --obs OBS_OUT26.png   # monta as pastas M1..M6
 python valida_previsoes.py                                        # métricas + ranking consolidado
 python gera_relatorio_validacao.py --alvo 202610                  # relatório PDF por rodada
@@ -94,8 +102,7 @@ Comparativo_Modelos_<AAAAMM>.pdf
 logs/
 ```
 
-Nada disso vem no `git clone`. Para continuar o histórico de validação (ranking
-consolidado) na VM, copie `saida_mapas/Verificação/` e as pastas `saida_mapas/<MODELO>_<AAAAMM>`
-das rodadas que ainda serão validadas (até 6 meses para trás), por exemplo com `rsync`.
+Nada disso vem no `git clone`. A VM produz os mapas e os comparativos. A máquina de
+validação recebe os mapas por `rsync` (ver acima) e guarda o histórico `saida_mapas/Verificação/`.
 
 Detalhes do método e dos resultados estão em `CLAUDE.md`.

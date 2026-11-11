@@ -90,7 +90,12 @@ def processa_variaveis_mes(ds_prev, ds_hind, lead_idx, target_date):
         'TMAX': (tmax_prev, tmax_anom, 'Temperatura Máxima', '°C', 'jet', None, np.arange(10, 43, 2), 'RdBu_r', None, np.arange(-5, 5.5, 0.5))
     }
 
-def plota_mapa(lons, lats, data, header_esq, header_dir, cbar_label, cmap, levels, norm, output_path):
+def plota_mapa(lons, lats, data, header_esq, header_dir, cbar_label, cmap, levels, norm, output_path,
+               pontilhado=None):
+    """pontilhado: máscara 2D opcional (True = pontilhar), usada no MULTIMODELO para
+    marcar onde os modelos não concordam no sinal da anomalia.
+    O cinza #7a7a7a é claro o bastante para o valida_previsoes.py não confundir os
+    pontos com as linhas pretas (limiar 110) usadas no georreferenciamento."""
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
     
@@ -116,6 +121,11 @@ def plota_mapa(lons, lats, data, header_esq, header_dir, cbar_label, cmap, level
     else:
         cf = ax.contourf(lons, lats, data, levels=levels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
     
+    if pontilhado is not None and np.any(pontilhado):
+        with plt.rc_context({"hatch.color": "#7a7a7a", "hatch.linewidth": 0.7}):
+            ax.contourf(lons, lats, np.asarray(pontilhado, dtype=float), levels=[0.5, 1.5],
+                        colors="none", hatches=[".."], transform=ccrs.PlateCarree())
+
     # Grade e rótulos
     gl = ax.gridlines(draw_labels=True, linestyle='--', color='gray', alpha=0.5)
     gl.top_labels = False
