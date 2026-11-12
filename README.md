@@ -52,18 +52,23 @@ As rodadas costumam ser publicadas no CDS por volta do meio do mês. O
 - quando os 9 estão prontos, gera o consenso MULTIMODELO (`gera_multimodelo.py`) e
   `Comparativo_Modelos_<AAAAMM>.pdf`, uma única vez;
 - usa uma trava (`flock`) para não rodar duas vezes ao mesmo tempo e grava o log em
-  `logs/automacao_<AAAAMM>.log`.
+  `logs/automacao_<AAAAMM>.log`;
+- com `COPERNICUS_EMAIL_TO` definida, manda e-mail (via `mutt`/`msmtp`, já configurados na VM)
+  quando a rodada fica pronta, com o PDF anexado se tiver até 18 MB; se a geração do PDF
+  falhar; e na última execução do dia 25 (`DIA_LIMITE`), se ainda faltarem modelos. Cada aviso
+  sai uma vez por rodada (marcas `logs/.email_<tipo>_<AAAAMM>`; apague a marca para reenviar).
 
 ```bash
 chmod +x cron_copernicus.sh
 crontab -e
 ```
 ```
-# Copernicus: 3x ao dia, do dia 5 ao 25
-0 8,14,20 5-25 * * PYTHON=$HOME/miniconda3/envs/copernicus/bin/python $HOME/copernicus/cron_copernicus.sh
+# Copernicus: 3x ao dia, do dia 5 ao 25 (08/14/20h de Brasília; a VM está em UTC)
+0 11,17,23 5-25 * * COPERNICUS_EMAIL_TO=voce@exemplo.com PYTHON=$HOME/miniforge3/envs/copernicus/bin/python $HOME/modelos/copernicus/cron_copernicus.sh
 ```
 
-Ajuste os caminhos ao local do clone e do conda na VM.
+Ajuste os caminhos ao local do clone e do conda na VM. O cron roda com PATH mínimo, por
+isso o `PYTHON` precisa apontar para o interpretador do ambiente `copernicus`.
 
 ## Uso manual
 

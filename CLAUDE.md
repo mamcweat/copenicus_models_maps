@@ -94,7 +94,12 @@ Cuidados de interpretação:
 - Máquina de desenvolvimento (notebook): Python do miniconda (`/home/marcio/miniconda3/bin/python3`),
   shell tcsh.
 - Produção: o repositório é clonado numa VM, onde roda o crontab (`cron_copernicus.sh`, ver
-  README). Dependências em `environment.yml` (conda-forge + pip: cdsapi, ecmwf-datastores-client).
+  README). Na VM (UTC, clone em `~/modelos/copernicus`, Python em
+  `~/miniforge3/envs/copernicus`) o crontab roda `0 11,17,23 5-25 * *` desde 12/11/2026,
+  com aviso por e-mail (`COPERNICUS_EMAIL_TO`, mutt/msmtp pela conta Gmail da VM). O PDF de
+  ~17,5 MB vira uma mensagem de ~24,8 MB, no limite dos 25 MB do Gmail; acima de 18 MB o script
+  manda o aviso sem anexo.
+  Dependências em `environment.yml` (conda-forge + pip: cdsapi, ecmwf-datastores-client).
   Credenciais em `~/.cdsapirc`; o `ecmwf.datastores` lê a mesma url/key desse arquivo.
 - Todos os caminhos são relativos ao diretório do script (`BASE_DIR`). O `automacao` passa
   `--dir_saida` ao `gera_mapas_previsao.py`, porque sem isso o cron gravava os mapas relativos ao
@@ -105,6 +110,9 @@ Cuidados de interpretação:
   `rsync -av --exclude 'Verificação/' <vm>:<clone>/saida_mapas/ saida_mapas/`.
 - Bibliotecas: xarray, cartopy 0.24, geopandas, shapely 2, scipy, matplotlib, PIL, cdsapi.
   OpenCV e tesseract **não** estão instalados.
+- matplotlib fixado em <3.11 no `environment.yml`: no 3.11, `gridlines(draw_labels=True)` +
+  colorbar via `make_axes_locatable` + `bbox_inches='tight'` faz o PNG sair só com a barra de
+  cores (mapa ausente, imagem ~339×2005 px).
 - Shapefiles Natural Earth em cache: `~/.local/share/cartopy/shapefiles/natural_earth/`.
   O admin_1 50m inclui as UFs do Brasil (coluna `postal`).
 

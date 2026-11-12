@@ -11,7 +11,7 @@ dependencies:
   - scipy>=1.16
   - xarray>=2025.6
   - netcdf4>=1.7
-  - matplotlib>=3.10
+  - matplotlib>=3.10,<3.11   # 3.11 quebra gridlines+colorbar com bbox tight (mapa sai vazio)
   - cartopy=0.24
   - geopandas>=1.1
   - shapely>=2.1
